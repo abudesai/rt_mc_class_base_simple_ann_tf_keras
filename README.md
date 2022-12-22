@@ -16,7 +16,7 @@ Artificial Neural Network Classifier in TensorFlow/Keras for Multi-class Classif
 - tensorflow
 - keras
 
-This is a Multi-class Classifier that uses Artificial Neural Network Classifier implemented through TensorFlow and Keras.
+This is a Multi-class Classifier that uses Artificial Neural Network Classifier implemented through TensorFlow and Keras. It has 2 hidden layers.
 
 We use stochastic gradient descent (SGD) to optimize the loss of this model. We apply softmax to the last layer to output a probability distribution on the K target classes.
 
