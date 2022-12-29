@@ -44,10 +44,7 @@ class ModelServer:
         # Grab input features for prediction
         pred_X, pred_ids = proc_data["X"].astype(np.float), proc_data["ids"]
         # make predictions
-        if return_probs:
-            preds = model.predict(pred_X)
-        else:
-            preds = model.predict(pred_X)
+        preds = model.predict(pred_X)
 
         return preds, pred_ids
 
