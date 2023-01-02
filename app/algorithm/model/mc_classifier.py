@@ -53,8 +53,12 @@ class Classifier:
 
     def build_model(self):
         reg = l1_l2(l1=self.l1_reg, l2=self.l2_reg)
+        M1 = max(2, int(self.D * 1.5))
+        M2 = self.K * 2
         input_ = Input(self.D)
         x = input_
+        x = Dense(M1, activity_regularizer=reg, activation="relu")(x)
+        x = Dense(M2, activity_regularizer=reg, activation="relu")(x)
         x = Dense(self.K, activity_regularizer=reg, activation="softmax")(x)
         output_ = x
         model = Model(input_, output_)
@@ -96,7 +100,7 @@ class Classifier:
         )
         return history
 
-    def predict(self, X, verbose=False):
+    def predict_proba(self, X, verbose=False):
         preds = self.net.predict(X, verbose=verbose)
         return preds
 
@@ -135,13 +139,7 @@ def save_model(model, model_path):
 
 
 def load_model(model_path):
-    try:
-        model = Classifier.load(model_path)
-    except:
-        raise Exception(
-            f"""Error loading the trained {MODEL_NAME} model. 
-            Do you have the right trained model in path: {model_path}?"""
-        )
+    model = Classifier.load(model_path)
     return model
 
 

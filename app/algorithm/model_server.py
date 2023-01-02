@@ -30,7 +30,7 @@ class ModelServer:
             self.model = mc_classifier.load_model(self.model_path)
         return self.model
 
-    def _get_predictions(self, data, return_probs=True):
+    def _get_predictions(self, data):
         preprocessor = self._get_preprocessor()
         model = self._get_model()
 
@@ -44,12 +44,12 @@ class ModelServer:
         # Grab input features for prediction
         pred_X, pred_ids = proc_data["X"].astype(np.float), proc_data["ids"]
         # make predictions
-        preds = model.predict(pred_X)
+        preds = model.predict_proba(pred_X)
 
         return preds, pred_ids
 
     def predict_proba(self, data):
-        preds, pred_ids = self._get_predictions(data, return_probs=True)
+        preds, pred_ids = self._get_predictions(data)
         class_names = pipeline.get_class_names(self.preprocessor, model_cfg)
         id_df = pd.DataFrame(pred_ids, columns=[self.id_field_name])
 
@@ -65,3 +65,27 @@ class ModelServer:
         ).idxmax(axis=1)
         preds_df.drop(class_names, axis=1, inplace=True)
         return preds_df
+
+    def predict_to_json(self, data): 
+        predictions_df = self.predict_proba(data)
+        predictions_df.columns = [str(c) for c in predictions_df.columns]
+        class_names = predictions_df.columns[1:]
+
+        predictions_df["__label"] = pd.DataFrame(
+            predictions_df[class_names], columns=class_names
+        ).idxmax(axis=1)
+
+        # convert to the json response specification
+        id_field_name = self.id_field_name
+        predictions_response = []
+        for rec in predictions_df.to_dict(orient="records"):
+            pred_obj = {}
+            pred_obj[id_field_name] = rec[id_field_name]
+            pred_obj["label"] = rec["__label"]
+            pred_obj["probabilities"] = {
+                str(k): np.round(v, 5)
+                for k, v in rec.items()
+                if k not in [id_field_name, "__label"]
+            }
+            predictions_response.append(pred_obj)
+        return predictions_response
